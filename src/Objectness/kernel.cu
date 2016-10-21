@@ -14,6 +14,7 @@
 
 #include <boost/python.hpp>
 
+
 #include "stdafx.h"
 #include "conversion.h"
 
@@ -22,12 +23,21 @@ using namespace std;
 
 namespace py = boost::python;
 
-py::list std_vector_to_py_list(const std::vector<Vec4i>& v)
+PyObject* std_vector_to_py_list(const std::vector<Vec4i>& v)
 {
-    py::object get_iter = py::iterator<std::vector<Vec4i> >();
-    py::object iter = get_iter(v);
-    py::list l(iter);
-    return l;
+    npy_intp shape[2] = {v.size(), 4};
+
+    std::vector<int> flat(v.size() * 4);
+    for (int i = 0 ; i < v.size(); ++i)
+    {
+        for (int j = 0; j < 4; ++j)
+        {
+            flat[i * 4 + j] = v[i][j];
+        }
+    }
+
+    PyObject* obj = PyArray_SimpleNewFromData(2, shape, NPY_INT, flat.data());
+    return obj;
 }
 
 class BINGpp
@@ -38,7 +48,7 @@ public:
     BINGpp(const std::string& dataPath);
     ~BINGpp();
 
-    py::list getObjBndBoxes(const PyObject* image);
+    PyObject* getObjBndBoxes(PyObject* image);
 };
 
 BINGpp::BINGpp(const std::string& modelPath)
@@ -56,18 +66,24 @@ BINGpp::~BINGpp()
     releaseGPU(MAX_THREAD_NUM);
 }
 
-py::list BINGpp::getObjBndBoxes(const PyObject* image)
+PyObject* BINGpp::getObjBndBoxes(PyObject* image)
 {
-    cv::Mat image = NDArrayConverter().toMat(image);
+    cv::Mat mat = NDArrayConverter().toMat(image);
     ValStructVec<float, Vec4i> boxes;
-    objNess.getObjBndBoxes(image, boxes, 130);
-    boxes.sort();
+    objNess.getObjBndBoxes(mat, boxes, 130);
+    boxes.sort(true);
+ 
     return std_vector_to_py_list(boxes.getSortedStructVal());
 }
 
 BOOST_PYTHON_MODULE(bingpp)
 {
     using namespace boost::python;
+
+    // defined in numpy
+    boost::python::numeric::array::set_module_and_type("numpy", "ndarray");
+    import_array();
+
     class_<BINGpp>("BINGpp", init<std::string>())
         .def("getObjBndBoxes", &BINGpp::getObjBndBoxes);
 }

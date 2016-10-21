@@ -44,7 +44,6 @@ static inline int* refcountFromPyObject(const PyObject* obj)
     return (int*)((size_t)obj + REFCOUNT_OFFSET);
 }
 
-
 class NumpyAllocator;
 
 enum { ARG_NONE = 0, ARG_MAT = 1, ARG_SCALAR = 2 };

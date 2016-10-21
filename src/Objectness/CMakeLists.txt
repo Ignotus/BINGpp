@@ -29,8 +29,7 @@ SOURCE_GROUP(engines FILES ${GSLIC_LIB})
 #OPENCV_DIR should be set as an environment variable in the shell if it is not
 #present in the standard directories
 
-# message(STATUS ${LIB_DIRS})
-include_directories(${INC_DIRS} ${Boost_INCLUDE_DIR} ${PYTHON_INCLUDE_DIR})
+include_directories(${INC_DIRS} ${Boost_INCLUDE_DIR} ${PYTHON_INCLUDE_DIR} ${CMAKE_INSTALL_PREFIX}/lib/python2.7/site-packages/numpy/core/include)
 link_directories(${LIB_DIRS})
 
 if (${CMAKE_COMPILER_IS_GNUCXX})
