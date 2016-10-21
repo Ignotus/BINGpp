@@ -1,5 +1,6 @@
 #
 find_package(CUDA REQUIRED)
+find_package(Boost REQUIRED COMPONENTS python)
 include(FindCUDA)
 set(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS} -gencode arch=compute_30,code=sm_30)
 
@@ -28,7 +29,7 @@ SOURCE_GROUP(engines FILES ${GSLIC_LIB})
 #present in the standard directories
 
 # message(STATUS ${LIB_DIRS})
-include_directories(${INC_DIRS})
+include_directories(${INC_DIRS} ${Boost_INCLUDE_DIR})
 link_directories(${LIB_DIRS})
 
 if (${CMAKE_COMPILER_IS_GNUCXX})
@@ -41,5 +42,5 @@ set(SRC_FILES CmFile.cpp CmShow.cpp DataSetVOC.cpp FilterBING.cpp mtse.cpp Objec
 cuda_add_library(gSLIC_lib
 			${GSLIC_LIB})
 add_library(objectness ${SRC_FILES})
-cuda_add_executable(${PROJECT_NAME} ${SRC_FILES} kernel.cu)
-target_link_libraries(${PROJECT_NAME} opencv_highgui opencv_core opencv_imgproc opencv_ts opencv_imgcodecs liblinear blas gSLIC_lib ${CUDA_LIBRARY} vl)
+cuda_add_library(bingpp_ext ${SRC_FILES} kernel.cu)
+target_link_libraries(bingpp_ext opencv_highgui opencv_core opencv_imgproc opencv_ts opencv_imgcodecs liblinear blas gSLIC_lib ${CUDA_LIBRARY} vl ${Boost_LIBRARIES})

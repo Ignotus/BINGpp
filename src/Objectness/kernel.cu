@@ -12,46 +12,60 @@
 #include <opencv2/highgui/highgui.hpp>
 #include <omp.h>
 
+#include <boost/python.hpp>
+
 #include "stdafx.h"
 
 using namespace cv;
 using namespace std;
 
-int main(int argc, char* argv[])
+namespace py = boost::python;
+
+py::list std_vector_to_py_list(const std::vector<Vec4i>& v)
 {
-    if(argc < 2){
-        std::cerr << "Please pass the data path to as first argument" << std::endl;
-        return 1;
-    }
-    CStr dataPath = argv[1];
+    py::object get_iter = py::iterator<std::vector<Vec4i> >();
+    py::object iter = get_iter(v);
+    py::list l(iter);
+    return l;
+}
 
-    DataSetVOC voc2007(dataPath);
+class BINGpp
+{
+    DataSetVOC voc2007;
+    Objectness objNess;
+public:
+    BINGpp(const std::string& dataPath);
+    ~BINGpp();
+    
+    py::list getObjBndBoxes(const Mat& image);
+};
 
-    double base = 2;
-    int W = 8;
-    int NSS = 2;
-    int numPerSz = 130;
-
-    Objectness objNess(voc2007, base, W, NSS);
+BINGpp::BINGpp(const std::string& dataPath)
+    : voc2007(dataPath)
+    , objNess(voc2007, 2, 8, 2)
+{
     objNess.loadTrainedModel("ObjNessB2W8MAXBGR");
-
     const int MAX_THREAD_NUM = omp_get_max_threads();
     initGPU(MAX_THREAD_NUM);
+}
 
-    Mat image;
-    image = imread(argv[2], CV_LOAD_IMAGE_COLOR);
-    std::cout << "image readed" << std::endl;
-
-    ValStructVec<float, Vec4i> boxes;
-    objNess.getObjBndBoxes(image, boxes, numPerSz);
-    boxes.sort();
-
-    const std::vector<Vec4i>& bbs = boxes.getSortedStructVal();
-    for (int i = 0; i < bbs.size(); ++i) {
-        std::cout << bbs[i][0] << "," << bbs[i][1] << "," << bbs[i][2] << "," << bbs[i][3] << std::endl;
-    }
-
+BING::~BINGpp()
+{
+    const int MAX_THREAD_NUM = omp_get_max_threads();
     releaseGPU(MAX_THREAD_NUM);
+}
 
-    return 0;
+py::list BINGpp::getObjBndBoxes(const Mat& image)
+{
+    ValStructVec<float, Vec4i> boxes;
+    objNess.getObjBndBoxes(image, boxes, 130);
+    boxes.sort();
+    return boxes;
+}
+
+BOOST_PYTHON_MODULE(bingpp)
+{
+    using namespace boost::python;
+    class_<BINGpp>("BINGpp", init<std::string>())
+        .def("getObjBndBoxes", &BINGpp::getObjBndBoxes)
 }
