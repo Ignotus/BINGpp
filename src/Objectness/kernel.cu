@@ -36,7 +36,7 @@ class BINGpp
 public:
     BINGpp(const std::string& dataPath);
     ~BINGpp();
-    
+
     py::list getObjBndBoxes(const Mat& image);
 };
 
