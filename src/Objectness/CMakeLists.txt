@@ -1,7 +1,7 @@
 #
 find_package(CUDA REQUIRED)
 include(FindCUDA)
-set(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS} -std=c++11 -gencode arch=compute_30,code=sm_30)
+set(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS} -gencode arch=compute_30,code=sm_30)
 
 set(INC_DIRS ${BING++_SOURCE_DIR}/LibLinear ${BING++_SOURCE_DIR}/LibLinear/blas ${BING++_SOURCE_DIR}/../ext /usr/local/cuda/include ${OPENCV_PATH}include ${BING++_SOURCE_DIR}/Objectness/gSLIC_Lib ${BING++_SOURCE_DIR}/Objectness/FelzenSegment )
 set(LIB_DIRS ${BING++_BINARY_DIR}/LibLinear ${BING++_SOURCE_DIR}/../ext ${OPENCV_PATH}lib)
