@@ -37,35 +37,35 @@ public:
     BINGpp(const std::string& dataPath);
     ~BINGpp();
 
-    py::list getObjBndBoxes(const Mat& image);
+    py::list getObjBndBoxes(Mat& image);
 };
 
-BINGpp::BINGpp(const std::string& dataPath)
-    : voc2007(dataPath)
+BINGpp::BINGpp(const std::string& modelPath)
+    : voc2007("")
     , objNess(voc2007, 2, 8, 2)
 {
-    objNess.loadTrainedModel("ObjNessB2W8MAXBGR");
+    objNess.loadTrainedModel(modelPath + "/ObjNessB2W8MAXBGR");
     const int MAX_THREAD_NUM = omp_get_max_threads();
     initGPU(MAX_THREAD_NUM);
 }
 
-BING::~BINGpp()
+BINGpp::~BINGpp()
 {
     const int MAX_THREAD_NUM = omp_get_max_threads();
     releaseGPU(MAX_THREAD_NUM);
 }
 
-py::list BINGpp::getObjBndBoxes(const Mat& image)
+py::list BINGpp::getObjBndBoxes(Mat& image)
 {
     ValStructVec<float, Vec4i> boxes;
     objNess.getObjBndBoxes(image, boxes, 130);
     boxes.sort();
-    return boxes;
+    return std_vector_to_py_list(boxes.getSortedStructVal());
 }
 
 BOOST_PYTHON_MODULE(bingpp)
 {
     using namespace boost::python;
     class_<BINGpp>("BINGpp", init<std::string>())
-        .def("getObjBndBoxes", &BINGpp::getObjBndBoxes)
+        .def("getObjBndBoxes", &BINGpp::getObjBndBoxes);
 }

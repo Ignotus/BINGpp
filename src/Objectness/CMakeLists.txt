@@ -1,6 +1,6 @@
 #
 find_package(CUDA REQUIRED)
-find_package(PythonLibs REQUIRED)
+find_package(PythonLibs 2.7 REQUIRED)
 find_package(Boost REQUIRED COMPONENTS python)
 include(FindCUDA)
 set(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS} -gencode arch=compute_30,code=sm_30)
@@ -40,8 +40,8 @@ endif (${CMAKE_COMPILER_IS_GNUCXX})
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OPENMP_FLAG} -O3") # -O0 -pg
 
 set(SRC_FILES CmFile.cpp CmShow.cpp DataSetVOC.cpp FilterBING.cpp mtse.cpp Objectness.cpp stdafx.cpp)
-cuda_add_library(gSLIC_lib
+cuda_add_library(gSLIC_lib SHARED
 			${GSLIC_LIB})
-add_library(objectness ${SRC_FILES})
-cuda_add_library(bingpp_ext ${SRC_FILES} kernel.cu)
-target_link_libraries(bingpp_ext opencv_highgui opencv_core opencv_imgproc opencv_ts opencv_imgcodecs liblinear blas gSLIC_lib ${CUDA_LIBRARY} vl ${Boost_LIBRARIES} ${PYTHON_LIBRARY})
+cuda_add_library(bingpp SHARED ${SRC_FILES} kernel.cu)
+set_target_properties(bingpp PROPERTIES PREFIX "")
+target_link_libraries(bingpp opencv_highgui opencv_core opencv_imgproc opencv_ts opencv_imgcodecs liblinear blas gSLIC_lib ${CUDA_LIBRARY} vl ${Boost_LIBRARIES} ${PYTHON_LIBRARY})
