@@ -15,6 +15,7 @@
 #include <boost/python.hpp>
 
 #include "stdafx.h"
+#include "conversion.h"
 
 using namespace cv;
 using namespace std;
@@ -37,7 +38,7 @@ public:
     BINGpp(const std::string& dataPath);
     ~BINGpp();
 
-    py::list getObjBndBoxes(Mat& image);
+    py::list getObjBndBoxes(const PyObject* image);
 };
 
 BINGpp::BINGpp(const std::string& modelPath)
@@ -55,8 +56,9 @@ BINGpp::~BINGpp()
     releaseGPU(MAX_THREAD_NUM);
 }
 
-py::list BINGpp::getObjBndBoxes(Mat& image)
+py::list BINGpp::getObjBndBoxes(const PyObject* image)
 {
+    cv::Mat image = NDArrayConverter().toMat(image);
     ValStructVec<float, Vec4i> boxes;
     objNess.getObjBndBoxes(image, boxes, 130);
     boxes.sort();
