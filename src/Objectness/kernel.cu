@@ -45,17 +45,17 @@ class BINGpp
     DataSetVOC voc2007;
     Objectness objNess;
 public:
-    BINGpp(const std::string& dataPath);
+    BINGpp(const char* dataPath);
     ~BINGpp();
 
     PyObject* getObjBndBoxes(PyObject* image);
 };
 
-BINGpp::BINGpp(const std::string& modelPath)
+BINGpp::BINGpp(const char* modelPath)
     : voc2007("")
     , objNess(voc2007, 2, 8, 2)
 {
-    objNess.loadTrainedModel(modelPath + "/ObjNessB2W8MAXBGR");
+    objNess.loadTrainedModel(std::string(modelPath) + "/ObjNessB2W8MAXBGR");
     const int MAX_THREAD_NUM = omp_get_max_threads();
     initGPU(MAX_THREAD_NUM);
 }
@@ -84,6 +84,6 @@ BOOST_PYTHON_MODULE(bingpp)
     boost::python::numeric::array::set_module_and_type("numpy", "ndarray");
     import_array();
 
-    class_<BINGpp>("BINGpp", init<std::string>())
+    class_<BINGpp>("BINGpp", init<const char*>())
         .def("getObjBndBoxes", &BINGpp::getObjBndBoxes);
 }
